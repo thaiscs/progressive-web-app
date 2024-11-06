@@ -1,0 +1,7 @@
+<%= form_with url: "/search/forecasts", method: :get do |form| %>
+  <%= form.label :query, "City:" %>
+  <%= form.text_field :query %>
+  <%= form.submit "Choose" %>
+  
+  <%= render "search/last_searches/index"%>
+<% end %>
