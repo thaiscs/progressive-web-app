@@ -1,7 +1,21 @@
+// Workbox library
 importScripts(
   "https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js"
 );
-  
+
+workbox.routing.registerRoute(
+  ({ url }) => url.pathname.startsWith('/search/forecasts'),
+  new workbox.strategies.NetworkFirst({
+    cacheName: 'dynamic-pages',
+    plugins: [
+      new workbox.expiration.ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 7 * 24 * 60 * 60, // Cache for 7 days.
+      }),
+    ],
+  })
+);
+
 function onInstall(event) {
   console.log('[Serviceworker]', "Installing!", event);
 }
