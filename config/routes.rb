@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
   namespace :search do
     get "forecasts", to: "forecasts#index"
+    get "forecasts/location", to: "forecasts#show_weather_forecast"
   end
   # PWA key files
   get "/service-worker.js" => "service_worker#service_worker"
