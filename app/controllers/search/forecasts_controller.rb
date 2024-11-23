@@ -2,18 +2,16 @@ class Search::ForecastsController < ApplicationController
   before_action :identify_user
 
   def index
-    #todo: location per user
-    @locations = Location.all
+    @locations = @current_user.locations
 
     #todo: error handling for query and geocoder exception
     if params[:query].present?
       search_result = Geocoder.search(params[:query])
       @coordinates = search_result.first.coordinates
-      @location = search_result.first.data["name"]
-      # byebug
+      @location_name = search_result.first.data["name"]
 
-      save_searched_location
       show_weather_forecast
+      save_searched_location
     else
     flash[:alert] = "Location not found"
     end
@@ -27,30 +25,32 @@ class Search::ForecastsController < ApplicationController
     uri = URI(url)
     request = Net::HTTP.get(uri)
     response = JSON.parse(request)
-    @forecast = response["current"]["temperature_2m"]
+    @current_temperature = response["current"]["temperature_2m"]
 
-    # byebug
     render :show
   end
 
   def save_searched_location
-    # byebug
-    searched_location = @current_user.locations.new(
+    location = @locations.find_by(name: @location_name)
+  
+    if location
+      location.update(current_temperature: @current_temperature)
+      return
+    end
+    # Ensure the locations list is limited to 5 most recent
+    @locations.order(:created_at).first.destroy if @locations.count >= 5
+    
+    searched_location = @locations.new(
       name: params[:query],
       latitude: @coordinates[0],
-      longitude: @coordinates[1]
+      longitude: @coordinates[1],
+      current_temperature: @current_temperature
     )
-
-    # Save only the last 5 locations
-    if @current_user.locations.count >= 5
-      # Remove the oldest location if there are already 5
-      @current_user.locations.order(:created_at).first.destroy
-    end
-
+  
     if searched_location.save
       # json: { message: "Location saved successfully" }, status: :ok
     else
-      flash[:alert] = searched_location.errors
+      flash[:alert] = searched_location.errors.full_messages
     end
   end
 end
