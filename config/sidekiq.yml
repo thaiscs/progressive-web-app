@@ -1,0 +1,16 @@
+:concurrency: 5
+:queues:
+  - default
+
+:redis:
+  url: redis://localhost:6379/0
+
+# Logging settings
+:logfile: ./log/sidekiq.log
+:verbose: true
+
+# Schedule jobs using cron
+:schedule:
+  update_weather:
+    cron: "*/30 * * * *" # Every 30 minutes
+    class: "WeatherUpdateJob"
