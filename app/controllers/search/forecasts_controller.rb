@@ -2,7 +2,7 @@ class Search::ForecastsController < ApplicationController
   before_action :identify_user
 
   def index
-    @locations = @current_user.locations
+    @locations = @current_user.locations.order(created_at: :desc)
 
     #todo: error handling for query and geocoder exception
     if params[:query].present?
@@ -50,7 +50,7 @@ class Search::ForecastsController < ApplicationController
       return
     end
     # Ensure the locations list is limited to 5 most recent
-    @locations.order(:created_at).first.destroy if @locations.count >= 5
+    @locations.last.destroy if @locations.count >= 5
     
     searched_location = @locations.new(
       name: @location_name,
