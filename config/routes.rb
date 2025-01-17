@@ -10,9 +10,9 @@ Rails.application.routes.draw do
 
   namespace :search do
     get "forecasts", to: "forecasts#index"
-    get "forecasts/location", to: "forecasts#show_weather_forecast"
+    get "forecasts/location", to: "forecasts#show"
   end
-  # PWA key files
+  # PWA files
   get "/service-worker.js" => "service_worker#service_worker"
   get "/manifest.json" => "service_worker#manifest" # make app installable
 end

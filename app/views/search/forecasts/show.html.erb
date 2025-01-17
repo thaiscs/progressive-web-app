@@ -1,7 +1,7 @@
-<% cache ["location_forecast", @location_name, @location_country, @current_temperature] do %>
-  <div><%= @location_name %></div>
-  <div><%= @location_country %></div>
-  <div><%= @current_temperature %></div>
+<% cache ["location_forecast", location_data] do %>
+  <div><%= location_data[:name] %></div>
+  <div><%= location_data[:country] %></div>
+  <div><%= location_data[:current_temperature] %></div>
 <% end %>
 
 <%= link_to "Back", search_forecasts_path %>

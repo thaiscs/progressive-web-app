@@ -3,67 +3,37 @@ class Search::ForecastsController < ApplicationController
 
   def index
     @locations = @current_user.locations.order(created_at: :desc)
-
-    #todo: error handling for query and geocoder exception
-    if params[:query].present?
-      search_result = Geocoder.search(params[:query])
-      @coordinates = search_result.first.coordinates
-      @location_name = search_result.first.data["name"]
-      @location_country = search_result.first.data["address"]["country"]
-
-      redirect_to search_forecasts_location_url(
-        latitude: @coordinates[0], 
-        longitude: @coordinates[1],
-        name: @location_name,
-        country: @location_country
-        )
-      save_searched_location
-    else
-    flash[:alert] = "Location not found"
-    end
+    search_and_save_location if params[:query].present?
   end
 
-  def show_weather_forecast
-    latitude = params[:latitude]
-    longitude = params[:longitude]
-    @location_name = params[:name]
-    @location_country = params[:country]
-
-    base_url = "https://api.open-meteo.com/v1/forecast?"
-    url = "#{base_url}latitude=#{latitude}&longitude=#{longitude}&current=temperature_2m"
-    
-    uri = URI(url)
-    request = Net::HTTP.get(uri)
-    response = JSON.parse(request)
-    @current_temperature = response["current"]["temperature_2m"]
- 
-    render :show
+  def show
+    current_temperature = WeatherService.get_current_temperature(params[:latitude], params[:longitude])
+    #todo: update backend with current_temperature? check update Job
+    render :show, locals: { 
+      location_data: location_params.merge(current_temperature: current_temperature).to_h 
+    }
   end
 
   private
+  def search_and_save_location   
+    @location_info = GeocodeService.search(params[:query]) #todo: error handling geocoder exception
+    @current_temperature = WeatherService.get_current_temperature(location_data[:latitude], location_data[:longitude])
 
-  def save_searched_location
-    location = @locations.find_by(name: @location_name)
-  
-    if location
-      location.update(current_temperature: @current_temperature)
-      return
-    end
-    # Ensure the locations list is limited to 5 most recent
-    @locations.last.destroy if @locations.count >= 5
-    
-    searched_location = @locations.new(
-      name: @location_name,
-      country: @location_country,
-      latitude: @coordinates[0],
-      longitude: @coordinates[1],
-      current_temperature: @current_temperature
-    )
-  
-    if searched_location.save
-      # json: { message: "Location saved successfully" }, status: :ok
-    else
-      flash[:alert] = searched_location.errors.full_messages
-    end
+    redirect_to search_forecasts_location_url(location_data)
+    Location.save_recent_locations(@current_user, location_data)
   end
+
+  def location_data
+    {
+      name: @location_info[:name],
+      country: @location_info[:country],
+      latitude: @location_info[:coordinates] ? @location_info[:coordinates][0] : nil,
+      longitude: @location_info[:coordinates] ? @location_info[:coordinates][1] : nil,
+      current_temperature: @current_temperature
+    }
+  end
+
+    def location_params
+      params.permit(:name, :country, :current_temperature)
+    end  
 end
