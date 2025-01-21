@@ -1,6 +1,6 @@
 class Location < ApplicationRecord
   belongs_to :user
-  MAX_LOCATIONS = 5
+  MAX_LOCATIONS = 5 #todo: extract to env variable to be globally used and changed
 
   def self.save_recent_locations(user, location_data, limit = MAX_LOCATIONS)
     locations = user.locations

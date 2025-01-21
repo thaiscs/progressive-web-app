@@ -8,7 +8,7 @@ Rails.application.routes.draw do
   require "sidekiq/web"
   mount Sidekiq::Web => "/sidekiq"
 
-  namespace :search do
+  namespace :weather do
     get "forecasts", to: "forecasts#index"
     get "forecasts/location", to: "forecasts#show"
   end
