@@ -26,9 +26,9 @@ class Weather::ForecastsController < ApplicationController
   end
 
   def forecast_service
-    service_type = params[:service_type]&.to_sym || :open_meteo
-    api_service = WeatherApiServiceFactory.create(service_type, params[:latitude], params[:longitude])
-    WeatherForecastService.new(params[:latitude], params[:longitude], api_service: api_service)
+    api_service = params[:service_type]&.to_sym || :open_meteo
+    service_factory = WeatherApiServiceFactory.new(api_service, params[:latitude], params[:longitude])
+    service_factory.create
   end
 
   def location_data 

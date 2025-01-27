@@ -1,17 +1,23 @@
 class WeatherForecastService
-  def initialize(latitude, longitude, api_service:)
-    @api_service = api_service
-  end
 
-  def get_current_temperature
-    data = @api_service.fetch_weather_data("current=temperature_2m")
-    extract_value(data, ["current", "temperature_2m"])
+  def fetch_weather_forecast(url)
+    response = make_request(url)
+    parse_response(response)
   end
-  # Additional methods for other weather data as needed
-
+  
   private
 
-  def extract_value(data, keys)
-    keys.reduce(data) { |memo, key| memo[key] } if data.is_a?(Hash)
+  def make_request(url)
+    uri = URI(url)
+    Net::HTTP.get(uri)
+  rescue StandardError => e
+    # Handle errors like connection issues, timeouts, etc.
+    { error: "Failed to fetch data: #{e.message}" }.to_json
+  end
+
+  def parse_response(response)
+    JSON.parse(response)
+  rescue JSON::ParserError => e
+    { error: "Failed to parse response: #{e.message}" }
   end
 end

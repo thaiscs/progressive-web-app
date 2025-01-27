@@ -1,11 +1,12 @@
 class WeatherApiServiceFactory
-  def self.create(service_type, latitude, longitude)
-    case service_type
-    when :open_meteo
-      WeatherApiService.new(latitude: latitude, longitude: longitude)
-    # Add other services here
-    else
-      raise "Unknown service type: #{service_type}"
-    end
+
+  def initialize(api_service, latitude, longitude)    
+    @api_service = api_service
+    @latitude = latitude
+    @longitude = longitude
+  end
+
+  def create
+    WeatherForecastServiceBuilder.create(@api_service, @latitude, @longitude)
   end
 end
