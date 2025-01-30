@@ -9,7 +9,7 @@ class Weather::ForecastsController < ApplicationController
   def show
     #todo: update backend with current_temperature? check update Job
     location_data = location_params.merge(
-      current_temperature: forecast_service.get_current_temperature
+      current_temperature: forecast_location.get_current_temperature
     ).to_h
     render :show, locals: { location_data: location_data }
     save_location(location_data) #todo: refactor because in every show (even when not new location) is calling save_recent_locations
@@ -21,14 +21,13 @@ class Weather::ForecastsController < ApplicationController
     redirect_to weather_forecasts_location_url(location_data)
   end
 
-  def save_location(location_data)   
-    Location.save_recent_locations(@current_user, location_data)
+  def forecast_location
+    api_service = params[:service_type]&.to_sym || :open_meteo
+    WeatherForecastApiFactory.create(api_service, params[:latitude], params[:longitude])
   end
 
-  def forecast_service
-    api_service = params[:service_type]&.to_sym || :open_meteo
-    service_factory = WeatherApiServiceFactory.new(api_service, params[:latitude], params[:longitude])
-    service_factory.create
+  def save_location(location_data)   
+    Location.save_recent_locations(@current_user, location_data)
   end
 
   def location_data 

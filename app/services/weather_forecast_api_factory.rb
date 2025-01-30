@@ -1,4 +1,4 @@
-class WeatherForecastServiceBuilder
+class WeatherForecastApiFactory
   def self.create(api_type, latitude, longitude)
     case api_type
     when :open_meteo

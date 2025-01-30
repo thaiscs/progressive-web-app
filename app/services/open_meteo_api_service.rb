@@ -2,24 +2,24 @@ class OpenMeteoApiService
   BASE_URL = "https://api.open-meteo.com/v1/forecast" 
   #todo: move to env variable: BASE_URL = ENV.fetch('WEATHER_API_BASE_URL', "https://api.open-meteo.com/v1/forecast")
   
-  def initialize(latitude:, longitude:)
+  def initialize(latitude:, longitude:, request_builder: WeatherForecastRequestBuilder.new)
     @latitude = latitude
     @longitude = longitude
-    @api_service = WeatherForecastService.new
+    @request_builder = request_builder
   end
 
   def get_current_temperature
-    url = build_url("current=temperature_2m")
-    response = @api_service.fetch_weather_forecast(url)
+    response = @request_builder
+                .set_base_url(BASE_URL)
+                .add_query_param("latitude", @latitude)
+                .add_query_param("longitude", @longitude)
+                .add_query_param("current", "temperature_2m")
+                .fetch
+
     extract_value(response, ["current", "temperature_2m"])
   end
-  # Additional methods for other weather data as needed
 
   private
-
-  def build_url(query_params)
-    "#{BASE_URL}?latitude=#{@latitude}&longitude=#{@longitude}&#{query_params}"
-  end
 
   def extract_value(response, params)
     params.reduce(response) { |json, key| json[key] } if response.is_a?(Hash)
